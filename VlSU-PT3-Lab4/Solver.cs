@@ -1,11 +1,13 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
+using System.Transactions;
 
 namespace VlSU_PT3_Lab4
 {
     public class Solver
     {
-        public static double Solve(Func<double,double> f, double x0, double x1)
+        public static double Solve(Func<double, double> f, double x0, double x1)
         {
             double x, fx0 = f(x0), fx1;
             do
@@ -20,11 +22,11 @@ namespace VlSU_PT3_Lab4
                 Math.Abs(x0 / x1 - 1) > 2 * Double.Epsilon &&
                 Math.Abs(fx1) > 2 * Double.Epsilon
             );
-            
+
             return x;
         }
 
-        public static double SolveBisect(Func<double,double> f, double x0, double x1)
+        public static double SolveBisect(Func<double, double> f, double x0, double x1)
         {
             // Удостоверимся, что границы отрезка заданы по возрастанию
             double a = x0, b = x1;
@@ -77,7 +79,7 @@ namespace VlSU_PT3_Lab4
         // Количество шагов бисекции
         private const byte _bisectionSteps = 4;
 
-        public static double SolveHybrid(Func<double,double> f, double x0, double x1)
+        public static double SolveHybrid(Func<double, double> f, double x0, double x1)
         {
             // Нормализация границ
             double a = x0, b = x1;
@@ -158,7 +160,7 @@ namespace VlSU_PT3_Lab4
             return b;
         }
 
-        public static double SolveIllinois(Func<double,double> f, double x0, double x1)
+        public static double SolveIllinois(Func<double, double> f, double x0, double x1)
         {
             // Нормализация границ
             double a = x0, b = x1;
@@ -224,6 +226,65 @@ namespace VlSU_PT3_Lab4
 
             return c;
         }
-    }
 
+        public static double SolveITP(Func<double, double> f, double x0, double x1, double k1, double k2, int n0, double epsilon)
+        {
+            // Нормализация границ
+            double a = x0, b = x1;
+            if (x1 < x0)
+            {
+                a = x1;
+                b = x0;
+            }
+
+            // Оценка количества итераций, которые потребовались бы
+            // методу бисекции для нахождения корня
+            int n1_2 = (int) Math.Ceiling(Math.Log2((b - a) * 0.5 / epsilon));
+            int nmax = n1_2 + n0;
+
+            ulong epsilon_modifier = 1UL << nmax;
+            double fa = f(a), fb = f(b);
+            double fitp, x1_2, xf, xt, xitp, r, delta, sigma;
+            while (b - a > 2 * epsilon)
+            {
+                // Интерполяция
+                xf = (fb * a - fa * b) / (fb - fa);
+
+                // Отсечение
+                x1_2 = (a + b) * 0.5;
+                sigma = x1_2 - xf;
+                delta = k1 * Math.Pow(b - a, k2);
+                if (delta <= Math.Abs(sigma))
+                    xt = xf + Math.CopySign(delta, sigma);
+                else
+                    xt = x1_2;
+
+                // Проекция
+                r = epsilon * epsilon_modifier - 0.5 * (b - a);
+                if (Math.Abs(xt - x1_2) <= r)
+                    xitp = xt;
+                else
+                    xitp = x1_2 - Math.CopySign(r, sigma);
+
+                // Смещение границ интервала
+                fitp = f(xitp);
+                if (Math.Sign(fitp) == Math.Sign(fb))
+                {
+                    b = xitp;
+                    fb = fitp;
+                }
+                else if (Math.Sign(fitp) == Math.Sign(fa))
+                {
+                    a = xitp;
+                    fa = fitp;
+                }
+                else
+                    return xitp;
+
+                epsilon_modifier >>= 1;
+            }
+
+            return (a + b) * 0.5;
+        }
+    }
 }

@@ -60,4 +60,22 @@ public class SolverTests
         Assert.Equal(Double.NaN, Solver.SolveIllinois(f, 2, 4), 1e-10);
         Assert.Equal(4.943735333787863, Solver.SolveIllinois(f, 4, 6), 1e-10);
     }
+
+    [Fact]
+    public void SolveEquationByITP()
+    {
+        double eps = 1e-10;
+        Func<double, double> f = x =>
+        {
+            double sine = Double.Sin(x);
+            return Double.Log2(sine * sine - Double.Cos(x * 3) + 0.5);
+        };
+
+        Assert.Equal(0.5880791665730997, Solver.SolveITP(f, 0.4, 1, 0.2, 2, 0, eps), eps);
+        Assert.Equal(1.7351182001678722, Solver.SolveITP(f, 1, 2, 0.2, 2, 0, eps), eps);
+        Assert.Equal(2.734875484633121, Solver.SolveITP(f, 2, 3, 0.2, 2, 0, eps), eps);
+        Assert.Equal(3.548309822546464, Solver.SolveITP(f, 3, 4, 0.2, 2, 0, eps), eps);
+        Assert.Equal(4.548067107011714, Solver.SolveITP(f, 4, 5, 0.2, 2, 0, eps), eps);
+        Assert.Equal(5.695106140606486, Solver.SolveITP(f, 5, 5.9, 0.2, 2, 0, eps), eps);
+    }
 }
