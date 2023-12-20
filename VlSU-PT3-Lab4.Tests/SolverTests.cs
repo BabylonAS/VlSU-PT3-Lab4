@@ -1,4 +1,3 @@
-using System.Runtime.Serialization;
 using Xunit;
 
 namespace VlSU_PT3_Lab4.Tests;
@@ -47,5 +46,18 @@ public class SolverTests
         Assert.Equal(1.3293426325582576, Solver.SolveHybrid(f, 1, 1.5), 1e-10);
         Assert.Equal(1.6755088421230933, Solver.SolveHybrid(f, 1.5, 2), 1e-10);
         Assert.Equal(Double.NaN, Solver.SolveHybrid(f, 2, 3), 1e-10);
+    }
+
+    [Fact]
+    public void SolveEquationByIllinois()
+    {
+        Func<double, double> f = x => Double.Exp(0.2 * x) - 3 * Double.Cos(x) - 2;
+
+        Assert.Equal(-4.16353504737036, Solver.SolveIllinois(f, -6, -4), 1e-10);
+        Assert.Equal(-2.03156034564077, Solver.SolveIllinois(f, -4, -2), 1e-10);
+        Assert.Equal(Double.NaN, Solver.SolveIllinois(f, -2, 0), 1e-10);
+        Assert.Equal(1.7642916549816123, Solver.SolveIllinois(f, 0, 2), 1e-10);
+        Assert.Equal(Double.NaN, Solver.SolveIllinois(f, 2, 4), 1e-10);
+        Assert.Equal(4.943735333787863, Solver.SolveIllinois(f, 4, 6), 1e-10);
     }
 }

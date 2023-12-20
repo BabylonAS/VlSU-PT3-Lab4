@@ -1,4 +1,7 @@
-﻿namespace VlSU_PT3_Lab4
+﻿using System.Runtime.CompilerServices;
+using System.Security.Principal;
+
+namespace VlSU_PT3_Lab4
 {
     public class Solver
     {
@@ -154,5 +157,73 @@
 
             return b;
         }
+
+        public static double SolveIllinois(Func<double,double> f, double x0, double x1)
+        {
+            // Нормализация границ
+            double a = x0, b = x1;
+            if (x1 < x0)
+            {
+                a = x1;
+                b = x0;
+            }
+
+            // Проверить случаи, когда одна из границ является корнем
+            // функции
+            double fa = f(a), fb = f(b);
+            if (fa == 0.0)
+                return a;
+            else if (fb == 0.0)
+                return b;
+
+            // Удостоверимся, что функция принимает разные знаки на
+            // обоих границах отрезка
+            if (Math.Sign(fa) == Math.Sign(fb))
+                return Double.NaN;
+
+            // Производим деление отрезков
+            double c = 0, fc;
+            sbyte side = 0;
+            for (ushort i = 0; i < UInt16.MaxValue &&
+                Math.Abs(b - a) > Double.Epsilon * Math.Abs(b + a);
+                i++)
+            {
+                // Здесь "c" находится путём строительства секущей,
+                // соединяющих точки (a, fa) и (b, fb). В точке "c"
+                // секущая пересекает ось x.
+
+                // Особенность иллинойсского метода в том, что если
+                // значение fa или fb два раза подряд имеют один и тот
+                // же знак, что и fc, то вместо результата функции в
+                // другой граничной точке (соответственно fb или fa)
+                // подставляется половина этого результата. Тем самым
+                // на следующей итерации fc будет иметь общий знак с
+                // этим другим результатом.
+                c = (fa * b - fb * a) / (fa - fb);
+                fc = f(c);
+
+                if (Math.Sign(fc) == Math.Sign(fb))
+                {
+                    // Корень в левом подотрезке
+                    b = c; fb = fc;
+                    if (side == -1)
+                        fa *= 0.5;
+                    side = -1;
+                }
+                else if (Math.Sign(fc) == Math.Sign(fa))
+                {
+                    // Корень в правом подотрезке
+                    a = c; fa = fc;
+                    if (side == 1)
+                        fb *= 0.5;
+                    side = 1;
+                }
+                else
+                    break;
+            }
+
+            return c;
+        }
     }
+
 }
